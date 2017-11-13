@@ -1,0 +1,122 @@
+- hosts: localhost
+  vars:
+    gnome_ver: 3.26
+    gnomeshell_extension_list:
+      - num: 1160
+        gnome_version: 3.26
+  roles:
+    - role: cmprescott.chrome
+      become: true
+  tasks:
+    - copy:
+        src: etc/sudoers.d/custom-policy
+        dest: /etc/sudoers.d/custom-policy
+        owner: root
+        mode: 0664
+      become: true
+    # Create folders
+    - file: 
+        path: ~/webapps/ 
+        state: directory
+    - file:
+        path: ~/ansibles/
+        state: directory
+    - file: 
+        path: ~/debs/ 
+        state: directory
+      become: true
+    - user:
+        name: corey
+        generate_ssh_key: yes
+        ssh_key_bits: 4096
+        ssh_key_comment: "corey.bobco@gmail.com"
+    - apt_key: 
+        keyserver: hkp://pgp.mit.edu:80 
+        id: 379CE192D401AB61
+      become: true
+    - apt_repository: 
+        repo: deb [arch=amd64] https://dl.bintray.com/resin-io/debian stable etcher
+      become: true
+    - apt_key: 
+        url: https://packages.microsoft.com/keys/microsoft.asc
+      become: true
+    - apt_repository:
+        repo: deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main
+      become: true
+    - apt_repository:
+        repo: ppa:papirus/papirus
+      become: true
+    - apt: 
+        name: "{{ item }}"
+        state: installed 
+        update_cache: yes
+      with_items:
+        - curl
+        - build-essential
+        - powertop
+        - python-pip
+        - python3-pip
+        - git
+        - pidgin
+        - pidgin-otr
+        - tmux
+        - tigervnc-viewer
+        - gnome-tweak-tool
+        - chrome-gnome-shell
+        - gparted
+        - cantata
+        - quodlibet
+        - exfalso
+        - code
+        - etcher-electron
+        - gir1.2-gmenu-3.0
+        - furiusisomount
+        - arc-theme
+        - numix-gtk-theme
+        - numix-icon-theme
+        - papirus-icon-theme
+        - vlc
+        - nodejs
+        - redshift
+        - redshift-gtk
+      become: true
+    - name: download soulseekqt
+      get_url:
+        url: https://www.dropbox.com/s/wborsit53rlj7bz/SoulseekQt-$_pkgver-64bit.AppImage?dl=1
+        dest: /opt/soulseekqt.appimage
+        mode: a+rwx
+      become: true
+    - name: symlink /usr/bin/soulseekqt to appimage
+      file:
+        path: /usr/bin/soulseekqt
+        src: /opt/soulseekqt.appimage
+        mode: a+rwx
+        state: link
+      become: true
+    - git:
+        repo: ssh://git@github.com/coreybobco/ansible-rutorrent-seedbox.git
+        dest: ~/ansibles/seedbox/
+        accept_hostkey: yes
+        force: no
+        update: no
+    - systemd:
+          name: redshift
+          enabled: true
+          state: started
+          user: true
+      become: true
+      become_user: corey
+    - systemd:
+        name: redshift-gtk
+        enabled: true
+        state: started
+        user: true
+      become: true
+      become_user: corey
+    - sysctl:
+        name: fs.inotify.max_user_watches
+        value: 524288
+      become: true
+    - sysctl:
+        name: fs.file-max
+        value: 500000
