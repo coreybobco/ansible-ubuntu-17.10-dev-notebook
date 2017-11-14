@@ -1,9 +1,6 @@
 - hosts: localhost
   vars:
-    gnome_ver: 3.26
-    gnomeshell_extension_list:
-      - num: 1160
-        gnome_version: 3.26
+    username: corey
   roles:
     - role: cmprescott.chrome
       become: true
@@ -46,6 +43,12 @@
     - apt_repository:
         repo: ppa:papirus/papirus
       become: true
+    - apt_key: 
+        url: https://jgeboski.github.io/obs.key
+      become: true
+    - apt_repository: 
+        repo: deb http://download.opensuse.org/repositories/home:/jgeboski/xUbuntu_17.10 ./
+      become: true
     - apt: 
         name: "{{ item }}"
         state: installed 
@@ -59,6 +62,8 @@
         - git
         - pidgin
         - pidgin-otr
+        - pidgin-plugin-pack
+        - purple-facebook
         - tmux
         - tigervnc-viewer
         - gnome-tweak-tool
@@ -93,26 +98,20 @@
         mode: a+rwx
         state: link
       become: true
-    - git:
-        repo: ssh://git@github.com/coreybobco/ansible-rutorrent-seedbox.git
-        dest: ~/ansibles/seedbox/
-        accept_hostkey: yes
-        force: no
-        update: no
     - systemd:
           name: redshift
           enabled: true
           state: started
           user: true
       become: true
-      become_user: corey
+      become_user: "{{ username }}"
     - systemd:
         name: redshift-gtk
         enabled: true
         state: started
         user: true
       become: true
-      become_user: corey
+      become_user: "{{ username }}"
     - sysctl:
         name: fs.inotify.max_user_watches
         value: 524288
@@ -120,3 +119,4 @@
     - sysctl:
         name: fs.file-max
         value: 500000
+      become: true
