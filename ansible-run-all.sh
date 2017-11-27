@@ -1,2 +1,2 @@
 ansible-galaxy install -r requirements.yml
-ansible-playbook ubuntu-desktop.yml
+ansible-playbook devbook.yml
